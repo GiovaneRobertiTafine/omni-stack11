@@ -7,10 +7,9 @@ module.exports = {
         const { page = 1 } = req.query
 
         const [count]= await connection('incidents').count()
-        res.header('X-Total-Count', count['count(*)'])
-
+        
         const incidents = await connection('incidents')
-        .join('ongs', 'ong_id', '=', 'incidents.ong_id')
+        .join('ongs', 'ongs.id', '=', 'incidents.ong_id')
         .limit(5)
         .offset((page - 1) * 5)
         .select([
@@ -19,8 +18,11 @@ module.exports = {
             'ongs.email',
             'ongs.whatsapp',
             'ongs.city',
-            'ongs.uf' ])
+            'ongs.uf' 
+        ])
             
+        res.header('X-Total-Count', count['count(*)'])
+        
         return res.json(incidents)
     },
 
@@ -34,7 +36,6 @@ module.exports = {
             value,
             ong_id
         })
-        console.log(title)
 
         return res.json({ id }) 
     },
@@ -48,7 +49,7 @@ module.exports = {
             .select('ong_id')
             .first()
 
-        if (incident.ong_id != ong_id){
+        if (!incident || incident.ong_id !== ong_id){
             return res.status(401).json({"error": 'Operation not permitted.'})
         }
 
